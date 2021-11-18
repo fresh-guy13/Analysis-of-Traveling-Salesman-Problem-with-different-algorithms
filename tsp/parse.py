@@ -59,7 +59,7 @@ def parse(filename: str) -> TspData:
             if m := patterns['coord'].match(f.readline()):
                 coords[i] = [float(m.group(1)), float(m.group(3))]
             else:
-                raise RunetimeError("Failed to parse coordinate number {i+1}")
+                raise RuntimeError("Failed to parse coordinate number {i+1}")
         data['coords'] = np.array(coords)
 
     return TspData(**data)
