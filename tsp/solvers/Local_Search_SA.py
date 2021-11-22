@@ -1,13 +1,13 @@
 import sys
-#If u wanted to run this file, run it under The Project Directory
+from . import utils
 sys.path.append("./tsp/")
 from parse import parse
-import utils
+
 #from Project.tsp.graph import TspData
 import numpy as np
 #from tsp.parse import parse
 import math
-class Simulated_Annealing(object):
+class LS1_SA(object):
     def __init__(self, dist_mat, cooling_rate, seed):
         self.dist_mat = dist_mat
         self.candidate_array = np.asarray([i for i in range(1,len(self.dist_mat) + 1)])
@@ -42,15 +42,11 @@ class Simulated_Annealing(object):
         return self.best_dist
 
 
-        
-
-
-
 if __name__ == '__main__':
     # Temporarily use Atlanta as the example
     #TODO:: Use tsp_main to parse the data
     TSP_Data = parse("DATA/Atlanta.tsp")
-    test = Simulated_Annealing(TSP_Data.to_adjacency_mat(), 0.001, np.random.randint(1, 10000))
+    test = LS1_SA(TSP_Data.to_adjacency_mat(), 0.001, np.random.randint(1, 10000))
     solution = test.Simulated_Annealing()
     print(solution)
     
