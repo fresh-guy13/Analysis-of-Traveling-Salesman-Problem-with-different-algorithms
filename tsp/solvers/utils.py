@@ -18,3 +18,12 @@ def random_switch(arr):
     else:
         arr[idx], arr[idx + 1] = arr[idx + 1], arr[idx]
     return arr
+
+def gen_solution_file(dist, arr, file_name):
+    #arr is the 1D list of trace e.g [1,3,5,..]
+    #dist is the solution found by the algorithm
+    with open(file_name, "w") as file:
+        file.writelines(str(dist)+'\n')
+        file.writelines(str(arr[0] - 1))
+        for i in arr[1:]:
+            file.write(','+str(i-1))
