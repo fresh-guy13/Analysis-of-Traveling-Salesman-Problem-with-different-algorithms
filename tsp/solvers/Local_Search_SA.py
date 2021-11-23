@@ -3,9 +3,7 @@ from . import utils
 sys.path.append("./tsp/")
 from parse import parse
 
-#from Project.tsp.graph import TspData
 import numpy as np
-#from tsp.parse import parse
 import math
 class LS1_SA(object):
     def __init__(self, dist_mat, cooling_rate, seed):
@@ -14,7 +12,7 @@ class LS1_SA(object):
         self.cooling_rate = cooling_rate
         self.best_solution = np.copy(self.candidate_array)
         self.best_dist = utils.cal_total_dist(self.best_solution, self.dist_mat)
-        self.Temp = 1000
+        self.Temp = 10000
         self.seed = seed
         
     def SA_process(self, Temp):
@@ -44,10 +42,10 @@ class LS1_SA(object):
 
 if __name__ == '__main__':
     # Temporarily use Atlanta as the example
-    #TODO:: Use tsp_main to parse the data
-    TSP_Data = parse("DATA/Atlanta.tsp")
-    test = LS1_SA(TSP_Data.to_adjacency_mat(), 0.001, np.random.randint(1, 10000))
-    solution = test.Simulated_Annealing()
-    print(solution)
+
+    # TSP_Data = parse("DATA/Atlanta.tsp")
+    # test = LS1_SA(TSP_Data.to_adjacency_mat(), 0.001, np.random.randint(1, 10000))
+    # solution = test.Simulated_Annealing()
+    print("Using Simulated Annealing to solve TSP Probelm\n")
     
 
