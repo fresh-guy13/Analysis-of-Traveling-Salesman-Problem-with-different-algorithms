@@ -16,9 +16,11 @@ if __name__ == '__main__':
     data = parse(args.inst)
     dist_matrix = data.to_adjacency_mat()
     if args.algorithm == "LS1" or args.algorithm == "LS2":
-        sol_path = "{}_{}_{}_{}.sol".format(Path(args.inst).stem, args.algorithm, args.maxtime, args.seed)
+        sol_path = "../output/{}_{}_{}_{}.sol".format(Path(args.inst).stem, args.algorithm, args.maxtime, args.seed)
+        trace_path = "../output/{}_{}_{}_{}.trace".format(Path(args.inst).stem, args.algorithm, args.maxtime, args.seed)
     else:
-        sol_path = "{}_{}_{}.sol".format(Path(args.inst).stem, args.algorithm, args.maxtime)
+        sol_path = "../output/{}_{}_{}.sol".format(Path(args.inst).stem, args.algorithm, args.maxtime)
+        trace_path = "../output/{}_{}_{}_{}.trace".format(Path(args.inst).stem, args.algorithm, args.maxtime, args.seed)
 
     if args.algorithm == 'BnB':
         #TODO: Run Branch and Bound 
@@ -33,6 +35,7 @@ if __name__ == '__main__':
         print("The min distance of {} is {}".format(args.algorithm, solution[0]))
         print("The trace of {} is {}".format(args.algorithm, solution[1]))
         utils.gen_solution_file(solution[0], solution[1], sol_path)
+        utils.gen_trace_file(solution[2], trace_path)
     elif args.algorithm == 'LS2':
         #TODO: Run the LS2 Solution
         print("Use the LS2 algorithm")
