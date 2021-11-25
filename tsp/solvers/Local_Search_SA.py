@@ -1,8 +1,7 @@
 import sys, time
 from . import utils
 sys.path.append("./tsp/")
-from parse import parse
-
+#from parse import parse
 import numpy as np
 import math
 class LS1_SA(object):
