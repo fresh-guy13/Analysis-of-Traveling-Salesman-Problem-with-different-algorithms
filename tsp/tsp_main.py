@@ -9,7 +9,7 @@ if __name__ == '__main__':
     parser.add_argument('-inst', type=str, dest='inst', default='../DATA/Atlanta.tsp', help='Takes the name of the city')
     parser.add_argument('-algo', type=str, dest='algorithm', default='BnB', help='The algorithm to solve the TSP problem')
     parser.add_argument('-seed', type=int, dest='seed', default=1, help='The number of the seed')
-    parser.add_argument('-time', type=int, dest='maxtime', default=100, help='The cutoff time of the algorithm')
+    parser.add_argument('-time', type=int, dest='maxtime', default=10, help='The cutoff time of the algorithm')
     args = parser.parse_args()
 
     #Get the predefined class of TSP data using given data_path
@@ -33,7 +33,6 @@ if __name__ == '__main__':
         sol_instance = Local_Search_SA.LS1_SA(dist_matrix, 0.00001, args.seed, args.maxtime)
         solution = sol_instance.Simulated_Annealing()
         print("The min distance of {} is {}".format(args.algorithm, solution[0]))
-        print("The trace of {} is {}".format(args.algorithm, solution[1]))
         utils.gen_solution_file(solution[0], solution[1], sol_path)
         utils.gen_trace_file(solution[2], trace_path)
     elif args.algorithm == 'LS2':

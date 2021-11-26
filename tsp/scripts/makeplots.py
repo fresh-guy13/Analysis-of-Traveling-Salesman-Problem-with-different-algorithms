@@ -9,10 +9,11 @@ from optparse import OptionParser
 import matplotlib.pyplot as plt
 
 def plot_rt_distribution(traces, opt, title="Runtime distribution", show=False, fname_prefix=None):
-    N = len(traces)
+    N = len(traces[0])
+    print(N)
     lengths = [t.shape[0] for t in traces]
     success_indices = [np.searchsorted(-t[:,1], -opt) for t in traces]
-    
+    print(N, lengths, success_indices)
     is_success = [success_index < length for length, success_index in zip(lengths, success_indices)]
     # is_success[j] is True iff trace j reached the optimum before terminating
     
@@ -21,7 +22,7 @@ def plot_rt_distribution(traces, opt, title="Runtime distribution", show=False, 
     
     M = len(successful_runtimes)
     ygrid = [(j+1)/N for j in range(M)]
-    
+    print(successful_runtimes, ygrid)
     fig, ax = plt.subplots()
     ax.plot(successful_runtimes, ygrid, color='red')
     plt.xlabel('CPU time (s)')
@@ -44,7 +45,6 @@ def main():
     parser.add_option('-s', action="store", dest="fname_prefix", help="Prefix of output file")
     
     (options, args) = parser.parse_args()
-
     traces = [np.array(pd.read_csv(fname, names=['time', 'score'])) for fname in args]
     # traces is a list of np.arrays with two columns each
     # Each row of each array is formatted as [time, score]

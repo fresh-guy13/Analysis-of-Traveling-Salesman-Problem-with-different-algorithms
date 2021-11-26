@@ -11,43 +11,47 @@ class LS1_SA(object):
         self.cooling_rate = cooling_rate
         self.best_solution = np.copy(self.candidate_array)
         self.best_dist = utils.cal_total_dist(self.best_solution, self.dist_mat)
+        #When temperature is 10000, performs bad
         self.Temp = 10000
         self.seed = seed
         self.max_time = max_time
         self.trace = []
     def RestartToBest(self):
-        return 0, self.best_solution, self.best_dist
+        return 0, np.copy(self.best_solution), np.copy(self.best_dist)
 
-    def SA_process(self, Temp):
-        start_time = time.time()
+    def SA_process(self):
         curr_solution = utils.gen_random_ans(self.candidate_array)
         curr_dist = utils.cal_total_dist(curr_solution, self.dist_mat)
         exe_time = 0
         #Count the number of staying in the same state
         stay_num = 0
-        e = 1.0 / 10000
-        while Temp >= 1 and self.max_time - exe_time > e:
+        start_time = time.time()
+        while self.Temp >= 1 and self.max_time - exe_time > 0:
             next_solution = utils.random_switch(curr_solution)
             next_dist = utils.cal_total_dist(next_solution, self.dist_mat)
             if next_dist < curr_dist :
                 curr_solution, curr_dist = next_solution, next_dist
+                stay_num = 0
+                if curr_dist < self.best_dist:
+                    self.best_solution, self.best_dist = curr_solution, curr_dist
+                    #Calculate trace_time
+                    trace_time = time.time() - start_time
+                    self.trace.append([trace_time, int(self.best_dist)])
             else:
-                if np.random.uniform(0, 1) <= math.exp((self.best_dist - curr_dist)/Temp) :
+                if np.random.uniform(0, 1) < math.exp((self.best_dist - curr_dist)/self.Temp) :
                     curr_solution, curr_dist = next_solution, next_dist
                 stay_num += 1
-            if curr_dist < self.best_dist:
-                self.best_solution, self.best_dist = curr_solution, curr_dist
-                trace_time = time.time() - start_time
-                self.trace.append([trace_time, int(self.best_dist)])
-            if stay_num >= 100:
+            
+            #If we can't get the better solution for 1000 time, go to best solution
+            if stay_num >= 1000:
                 stay_num, curr_solution, curr_dist = self.RestartToBest()
-            Temp *= (1 - self.cooling_rate)
+            self.Temp *= (1 - self.cooling_rate)
             exe_time = time.time() - start_time
     def Simulated_Annealing(self):
         #Set seed for the randomness
         np.random.seed(self.seed)
         #Generate random solution for the problem
-        self.SA_process(self.Temp)
+        self.SA_process()
         return self.best_dist, self.best_solution, self.trace
 
 
