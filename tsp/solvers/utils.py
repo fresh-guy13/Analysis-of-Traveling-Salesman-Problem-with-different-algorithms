@@ -1,10 +1,13 @@
 #### Utils function for solvers###
 import numpy as np
 import random
+from numba import jit, njit
+
 def gen_random_ans(arr):
     np.random.shuffle(arr)
     return arr
 
+@njit
 def cal_total_dist(arr, mat):
     total_dist = 0
     for i in range(-1, mat.shape[0] - 1):
