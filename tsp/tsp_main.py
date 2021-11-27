@@ -2,25 +2,26 @@ import argparse
 from pathlib import Path
 from parse import parse
 from solvers import Local_Search_SA, utils
-if __name__ == '__main__':
 
+def main():
     # TODO: parse args and call solver
     parser = argparse.ArgumentParser()
     parser.add_argument('-inst', type=str, dest='inst', default='../DATA/Atlanta.tsp', help='Takes the name of the city')
     parser.add_argument('-algo', type=str, dest='algorithm', default='BnB', help='The algorithm to solve the TSP problem')
     parser.add_argument('-seed', type=int, dest='seed', default=1, help='The number of the seed')
     parser.add_argument('-time', type=int, dest='maxtime', default=10, help='The cutoff time of the algorithm')
+    parser.add_argument('-odir', type=str, dest='odir', default=".", help='Where to store output files')
     args = parser.parse_args()
 
     #Get the predefined class of TSP data using given data_path
     data = parse(args.inst)
     dist_matrix = data.to_adjacency_mat()
     if args.algorithm == "LS1" or args.algorithm == "LS2":
-        sol_path = "../output/{}_{}_{}_{}.sol".format(Path(args.inst).stem, args.algorithm, args.maxtime, args.seed)
-        trace_path = "../output/{}_{}_{}_{}.trace".format(Path(args.inst).stem, args.algorithm, args.maxtime, args.seed)
+        sol_path = args.odir + "/{}_{}_{}_{}.sol".format(Path(args.inst).stem, args.algorithm, args.maxtime, args.seed)
+        trace_path = args.odir + "/{}_{}_{}_{}.trace".format(Path(args.inst).stem, args.algorithm, args.maxtime, args.seed)
     else:
-        sol_path = "../output/{}_{}_{}.sol".format(Path(args.inst).stem, args.algorithm, args.maxtime)
-        trace_path = "../output/{}_{}_{}_{}.trace".format(Path(args.inst).stem, args.algorithm, args.maxtime, args.seed)
+        sol_path = args.odir + "/{}_{}_{}.sol".format(Path(args.inst).stem, args.algorithm, args.maxtime)
+        trace_path = args.odir + "/{}_{}_{}_{}.trace".format(Path(args.inst).stem, args.algorithm, args.maxtime, args.seed)
 
     if args.algorithm == 'BnB':
         #TODO: Run Branch and Bound 
@@ -41,3 +42,5 @@ if __name__ == '__main__':
     else:
         print("The {} algorithm is not supported, please try another".format(args.algorithm))
     
+if __name__ == '__main__':
+    main()
