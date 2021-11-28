@@ -5,8 +5,8 @@ Provides parser for TSP files
 import numpy as np
 import re
 
-from edge_weight import get_edge_weight_func
-from graph import TspData
+from .edge_weight import get_edge_weight_func
+from .graph import TspData
 
 DIGIT = '-?\d+(\.\d+)?'
 
@@ -67,15 +67,12 @@ def parse(filename: str) -> TspData:
 
 if __name__ == '__main__':
     
-    # Just a quick test to make sure all the files parse correctly
-    
+    # Test to make sure all the files parse correctly
     import glob
     files = glob.glob("../DATA/*.tsp")
     
     for f in files:
         d = parse(f)
         assert(d.dim == len(d.coords))
-        print(d.to_adjacency_mat())
-        break
 
     
