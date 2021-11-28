@@ -6,8 +6,8 @@ from solvers import Local_Search_SA, utils
 def main():
     # TODO: parse args and call solver
     parser = argparse.ArgumentParser()
-    parser.add_argument('-inst', type=str, dest='inst', default='../DATA/Atlanta.tsp', help='Takes the name of the city')
-    parser.add_argument('-algo', type=str, dest='algorithm', default='BnB', help='The algorithm to solve the TSP problem')
+    parser.add_argument('-inst', type=str, dest='inst', default='../DATA/Atlanta.tsp', help='Path of input tsp file')
+    parser.add_argument('-alg', type=str, dest='algorithm', default='BnB', help='The algorithm to solve the TSP problem')
     parser.add_argument('-seed', type=int, dest='seed', default=1, help='The number of the seed')
     parser.add_argument('-time', type=int, dest='maxtime', default=10, help='The cutoff time of the algorithm')
     parser.add_argument('-odir', type=str, dest='odir', default=".", help='Where to store output files')
