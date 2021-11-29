@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 from parse import parse
-from solvers import Local_Search_SA, utils
+from solvers import Local_Search_SA, branch_and_bound, utils
 
 def main():
     # TODO: parse args and call solver
@@ -26,8 +26,13 @@ def run_tsp_main(inst, algorithm, seed, maxtime, odir):
         trace_path = odir + "/{}_{}_{}_{}.trace".format(Path(inst).stem, algorithm, maxtime, seed)
 
     if algorithm == 'BnB':
-        #TODO: Run Branch and Bound 
-        print("Use the BnB algorithm")
+        best_solution, trace = branch_and_bound.branch_and_bound(data, maxtime)
+        best_dist = best_solution.cost
+        best_path = best_solution.path
+        
+        utils.gen_solution_file(best_dist, best_path, sol_path)
+        utils.gen_trace_file(trace, trace_path)
+        
     elif algorithm == 'Approx':
         #TODO: Run Approximate Solution
         print("Use the Approx algorithm")

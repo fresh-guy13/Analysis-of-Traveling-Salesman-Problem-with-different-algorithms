@@ -148,13 +148,12 @@ def intersect(a, b, c, d):
     return False
     
         
-def branch_and_bound(tsp_data):
+def branch_and_bound(tsp_data, max_time):
     """
     TODO implement
     """
 
     start_time = time.time()
-    
     adj_mat = tsp_data.to_adjacency_mat()
     
     all_candidates = Bitset(len(adj_mat))
@@ -166,9 +165,8 @@ def branch_and_bound(tsp_data):
     F = [Node(0, all_candidates)]
     best_solution = F[0]
 
-    first_sol_found = True
-
     idx = 0
+    trace = []
 
     def no_intersections(node):
 
@@ -177,10 +175,6 @@ def branch_and_bound(tsp_data):
 
         cur_edge_b = tsp_data.coords[node.item]
         cur_edge_a = tsp_data.coords[node.parent.item]
-
-        # other = LineString([cur_edge_a, cur_edge_b])
-        # line = LineString([tsp_data.coords[i] for i in node.parent.path])
-        # return line.intersects(other)
 
         node = node.parent
         b = tsp_data.coords[node.item]
@@ -194,31 +188,16 @@ def branch_and_bound(tsp_data):
 
         return True
     
-    while F:
+    while F and (time.time()-start_time) < max_time:
                 
-        # Use depth-first-search until a first solution is found
-        if not first_sol_found:
-            node = F.pop()
-        # Then use best-first search
-        else:
-            node = heapq.heappop(F)
-
-        #print(node.level)
+        node = heapq.heappop(F)
         
         for subnode in node.expand(adj_mat):
-            if subnode.level == max_level:
-                print("Solution found")
-                
+            if subnode.level == max_level:                
                 subnode.set_cost(subnode.distance + adj_mat[subnode.item,0])
                 if subnode.cost < best_solution.cost:
                     best_solution = subnode
-                    #print(best_solution.path)
-                    if not first_sol_found:
-                        first_sol_found = True
-                        heapq.heapify(F)
-                        print("Found first solution")
-
-                #print(subnode.level, subnode.lowerbound, best_solution.cost, idx)
+                    trace.append([best_solution.cost, time.time()-start_time])
             else:
                 # Optimal solution doesn't have intersecting edges
                 if not no_intersections(subnode):
@@ -258,14 +237,11 @@ def branch_and_bound(tsp_data):
                 
                 if subnode.lowerbound < best_solution.cost:
                     
-                    print(subnode.level, subnode.lowerbound, best_solution.cost, idx, int(time.time()-start_time))
-                    if not first_sol_found:
-                        F.append(subnode)
-                    else:
-                        heapq.heappush(F, subnode)
+                    #print(subnode.level, subnode.lowerbound, best_solution.cost, idx, int(time.time()-start_time))
+                    heapq.heappush(F, subnode)
                     idx += 1
 
-    return best_solution
+    return best_solution, trace
 
 
 if __name__ == '__main__':
