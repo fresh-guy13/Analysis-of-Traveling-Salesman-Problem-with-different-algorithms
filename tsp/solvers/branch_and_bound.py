@@ -2,17 +2,22 @@
 Branch and Bound Solver
 """
 
+from collections import defaultdict
 import copy
 import heapq
 import math
 import numpy as np
 from numba.experimental import jitclass
 from numba import uint32, jit, njit
+from numba.np.extensions import cross2d
+from scipy.sparse.csgraph import minimum_spanning_tree
+import time
 
 spec = [
     ('_N', uint32),
     ('_bitsize', uint32),
     ('_bitset', uint32[:]),
+    ('_len', uint32)
     ]
 
 @jitclass(spec)
@@ -24,7 +29,11 @@ class Bitset:
         self._bitsize = 32
         array_len = math.ceil(self._N / self._bitsize)
         self._bitset = np.zeros(array_len, dtype=np.dtype('uint32'))
+        self._len = 0
 
+    def len(self):
+        return self._len
+        
     def contains(self, item):
         """Magic function used by 'in' syntax"""
         if item < self._N:
@@ -38,16 +47,14 @@ class Bitset:
         if item < self._N:
             block_idx, elem_idx = divmod(item, self._bitsize)
             self._bitset[block_idx] |= (1 << elem_idx)
-        # else:
-        #     raise Warning(f"{item} is outside the bounds for bitset")
+            self._len += 1
 
     def remove(self, item):
         """Remove item from set"""
         if item < self._N:
             block_idx, elem_idx = divmod(item, self._bitsize)
             self._bitset[block_idx] &= ~(1 << elem_idx)
-        # else:
-        #     raise Warning(f"{item} is outside the bounds for bitset")
+            self._len -= 1
 
     def empty(self):
         for i in range(len(self._bitset)):
@@ -56,12 +63,7 @@ class Bitset:
         return True
 
     def items(self):
-        """Return a generator to items in set"""
         return [i for i in range(self._N) if self.contains(i)]
-
-    def disjoint_items(self):
-        """Return a generator to items not in set"""
-        return [i for i in range(self._N) if not self.contains(i)]
 
     def copy(self):
         b = Bitset(self._N)
@@ -89,21 +91,20 @@ class Node:
 
     @property
     def priority(self):
-        return self.lowerbound / self.level**2
+        return self.lowerbound / self.level
     
     @property
     def path(self):
-        try:
-            return self._path
-        except:
+        if not hasattr(self, '_path'):
             path = []
             node = self
-            
+        
             while node is not None:
                 path.append(node.item)
-                
+                node = node.parent
+            
             self._path = list(reversed(path))
-            return self._path
+        return self._path
 
     def expand(self, adj_mat):
         level = self.level + 1
@@ -125,25 +126,39 @@ class Node:
 
     def set_lower_est(self, lower_est):
         self.lower_est = lower_est
-            
+
 @njit
-def ccw(a, b, c):
-    return (c[1] - a[1]) * (b[0]-a[0]) > (b[1] - a[1]) * (c[0] - a[0])
+def direction(a, b, c):
+    return cross2d(c-a, b-a)
 
 @njit
 def intersect(a, b, c, d):
-    return ccw(a, c, d) != ccw(b, c, d) and ccw(a, b, c) != ccw(a, b, d)
-        
+    """
+    Allow segments that share endpoints
+    """
+    # if a == c or a == d or b == c or b == d:
+    #     return False
+    d1 = direction(c,d,a)
+    d2 = direction(c,d,b)
+    d3 = direction(a,b,c)
+    d4 = direction(a,b,d)
+    if (((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0))
+        and ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0))):
+        return True
+    return False
+    
         
 def branch_and_bound(tsp_data):
     """
     TODO implement
     """
 
+    start_time = time.time()
+    
     adj_mat = tsp_data.to_adjacency_mat()
     
     all_candidates = Bitset(len(adj_mat))
-    for i in range(len(adj_mat)):
+    for i in range(1, len(adj_mat)):
         all_candidates.add(i)
 
     max_level = len(adj_mat) - 1
@@ -151,31 +166,33 @@ def branch_and_bound(tsp_data):
     F = [Node(0, all_candidates)]
     best_solution = F[0]
 
-    first_sol_found = False
+    first_sol_found = True
 
     idx = 0
 
     def no_intersections(node):
 
-        if node.parent is None:
+        if node.parent is None or node.parent.parent is None:
             return True
-        
+
         cur_edge_b = tsp_data.coords[node.item]
         cur_edge_a = tsp_data.coords[node.parent.item]
 
-        cur_node = node.parent
-        b = tsp_data.coords[cur_node.item]
-        while cur_node.parent is not None:
-            a = tsp_data.coords[cur_node.parent.item]
+        # other = LineString([cur_edge_a, cur_edge_b])
+        # line = LineString([tsp_data.coords[i] for i in node.parent.path])
+        # return line.intersects(other)
 
+        node = node.parent
+        b = tsp_data.coords[node.item]
+        while node.parent is not None:
+            a = tsp_data.coords[node.parent.item]
             if intersect(a, b, cur_edge_a, cur_edge_b):
                 return False
-            
-            cur_node = cur_node.parent
+
+            node = node.parent
             b = a
 
         return True
-        
     
     while F:
                 
@@ -192,16 +209,20 @@ def branch_and_bound(tsp_data):
             if subnode.level == max_level:
                 print("Solution found")
                 
-                subnode.set_cost(subnode.distance + adj_mat[node.item,0])
+                subnode.set_cost(subnode.distance + adj_mat[subnode.item,0])
                 if subnode.cost < best_solution.cost:
                     best_solution = subnode
-
+                    #print(best_solution.path)
                     if not first_sol_found:
                         first_sol_found = True
                         heapq.heapify(F)
                         print("Found first solution")
-                
+
+                #print(subnode.level, subnode.lowerbound, best_solution.cost, idx)
             else:
+                # Optimal solution doesn't have intersecting edges
+                if not no_intersections(subnode):
+                    continue
 
                 # Calculate lower estimation on remaining nodes
                 lower_est = 0
@@ -220,44 +241,29 @@ def branch_and_bound(tsp_data):
                     lower_est += from_start + from_curr
 
                     # 2. Minimum spanning tree of remaining elements
-                    Q = []
-                    Q.append([float('inf'), disjoint_items[0]])
-                    visited = Bitset(len(adj_mat))
+                    nleft = len(disjoint_items)
+                    tmp_adj = np.zeros((nleft, nleft), dtype=np.dtype('uint32'))
+                    for i in range(nleft):
+                        for j in range(nleft):
+                            if i != j:
+                                ii, jj = disjoint_items[i], disjoint_items[j]
+                                tmp_adj[i,j] = adj_mat[ii,jj]
 
-                    weights = {}
-                    parents = {}
-                    mst_cost = 0
-                
-                    while Q:
-                        _, i = heapq.heappop(Q)
-                    
-                        if visited.contains(i):
-                            continue
-                        else:
-                            if i in parents:
-                                mst_cost += adj_mat[parents[i], i]
-                            visited.add(i)
-
-                        for j in disjoint_items:
-                            if not visited.contains(j):
-                                if j not in weights:
-                                    weights[j] = adj_mat[i,j]
-                                if adj_mat[i,j] < weights[j]:
-                                    parents[j] = i
-                                    heapq.heappush(Q, [adj_mat[i,j], j])
-
+                    tmp_adj = minimum_spanning_tree(tmp_adj, overwrite=True)
+                    mst_cost = int(tmp_adj.sum())
+                                                        
                     lower_est += mst_cost
                     
                 subnode.set_lower_est(lower_est)
                 
                 if subnode.lowerbound < best_solution.cost:
-                    if no_intersections(subnode):
-                        print(subnode.level, subnode.lowerbound, best_solution.cost, idx)
-                        if not first_sol_found:
-                            F.append(subnode)
-                        else:
-                            heapq.heappush(F, subnode)
-                        idx += 1
+                    
+                    print(subnode.level, subnode.lowerbound, best_solution.cost, idx, int(time.time()-start_time))
+                    if not first_sol_found:
+                        F.append(subnode)
+                    else:
+                        heapq.heappush(F, subnode)
+                    idx += 1
 
     return best_solution
 
@@ -270,13 +276,13 @@ if __name__ == '__main__':
     sys.path.append("..")
     from tsp import parse
     
-    
-    #filename = "../DATA/Atlanta.tsp"
-    filename = "../DATA/Roanoke.tsp"
+    #filename = "../DATA/Roanoke.tsp"
+    filename = "../DATA/Atlanta.tsp"
+
     d = parse(filename)
 
     sol = branch_and_bound(d)
 
-    print(sol.distance)
+    print(sol.cost)
     
     
