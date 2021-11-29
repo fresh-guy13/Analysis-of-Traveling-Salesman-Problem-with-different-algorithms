@@ -9,6 +9,12 @@ from optparse import OptionParser
 import matplotlib.pyplot as plt
 
 def plot_rt_distribution(traces, opt, title="Runtime distribution", show=False, fname_prefix=None):
+    # traces is a list of np.arrays, each representing a trace.
+    # A trace is stored as a np.array with two columns.
+    # The first column is the time in seconds,
+    # and the second column is the best score seen at that time.
+
+    # N is the total number of trials
     N = len(traces)
     lengths = [t.shape[0] for t in traces]
     success_indices = [np.searchsorted(-t[:,1], -opt) for t in traces]
@@ -20,6 +26,7 @@ def plot_rt_distribution(traces, opt, title="Runtime distribution", show=False, 
     # take only the successful trials and sort their runtimes
     
     M = len(successful_runtimes)
+    print(successful_runtimes)
     ygrid = [(j+1)/N for j in range(M)]
     
     fig, ax = plt.subplots()
@@ -37,7 +44,7 @@ def plot_rt_distribution(traces, opt, title="Runtime distribution", show=False, 
         fig.savefig(fname_prefix + "_rtdist.pdf")
 
 def main():
-    usage = "python3 tsp/scripts/makeplots.py [OPTIONS] file1.trace file2.trace ...\nExample: python3 plotting.py -s outfile -o 30 traces/*"
+    usage = "python3 tsp/scripts/makeplots.py [OPTIONS] file1.trace file2.trace ...\nExample: python3 tsp/scripts/makeplots.py -s outfile -o 30 traces/*"
     parser = OptionParser(usage)
     parser.add_option('-o', action="store", type="int", dest="opt", help="Optimum value of problem")
     parser.add_option('-i', action="store_true", dest="show", help="Display interactive plot")
@@ -52,7 +59,7 @@ def main():
     if not options.opt:
         parser.error("I can't make a plot without the optimum value")
     opt = options.opt
-    print(options.show)
+    # print(options.show)
     plot_rt_distribution(traces, opt, show=options.show, fname_prefix=options.fname_prefix)
     
 
