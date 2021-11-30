@@ -12,6 +12,27 @@ from numba import uint32, jit, njit
 from numba.np.extensions import cross2d
 from scipy.sparse.csgraph import minimum_spanning_tree
 import time
+from heapq import heappush, heappop
+
+@njit
+def prim_find_mst(disjoint_items, dist_mat):
+    N = len(disjoint_items)
+    cost = 0.0
+    tree = Bitset(N)
+    start = 0
+    queue = [(np.uint32(0), start)]
+
+    while queue:
+        weight, vtx = heappop(queue)
+        if not tree.contains(vtx):
+            tree.add(vtx)
+            cost += weight
+            for j in range(N):
+                neigh = disjoint_items[j]
+                if not tree.contains(j):
+                    heappush(queue, (dist_mat[disjoint_items[vtx], neigh], j))
+    return cost
+
 
 spec = [
     ('_N', uint32),
@@ -62,12 +83,22 @@ class Bitset:
                 return False
         return True
 
+    def npitems(self):
+        arr = np.zeros(self._len, dtype=np.dtype('uint32'))
+        j = 0
+        for i in range(self._N):
+            if self.contains(i):
+                arr[j] = i
+                j = j + 1
+        return arr
+
     def items(self):
         return [i for i in range(self._N) if self.contains(i)]
 
     def copy(self):
         b = Bitset(self._N)
         b._bitset = self._bitset.copy()
+        b._len = self._len
         return b
     
 
@@ -146,7 +177,6 @@ def intersect(a, b, c, d):
         and ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0))):
         return True
     return False
-    
         
 def branch_and_bound(tsp_data, max_time):
     """
@@ -188,7 +218,16 @@ def branch_and_bound(tsp_data, max_time):
 
         return True
     
+    # iters = 0
+    # ctime = start_time
     while F and (time.time()-start_time) < max_time:
+        # ctime = start_time
+        # iters += 1
+        # if iters == 1000:
+        #     iters = 0
+        #     ptime = time.time()
+        #     print(ptime - ctime, best_solution.cost)
+        #     ctime = ptime
                 
         node = heapq.heappop(F)
         
@@ -207,31 +246,17 @@ def branch_and_bound(tsp_data, max_time):
                 lower_est = 0
                 if not subnode.subproblem.empty():
 
-                    disjoint_items = subnode.subproblem.items()
+                    disjoint_items = subnode.subproblem.npitems()
                     
                     # 1. Shortest edges from start and current node
-                    from_start = float('inf')
-                    from_curr = float('inf')
-                    for i in disjoint_items:
-                        if adj_mat[0, i] < from_start:
-                            from_start = adj_mat[0, i]
-                        if adj_mat[subnode.item, i] < from_curr:
-                            from_curr = adj_mat[subnode.item, i]
+                    from_start = np.min(adj_mat[0,disjoint_items])
+                    from_curr = np.min(adj_mat[subnode.item, disjoint_items])
+
                     lower_est += from_start + from_curr
 
                     # 2. Minimum spanning tree of remaining elements
-                    nleft = len(disjoint_items)
-                    tmp_adj = np.zeros((nleft, nleft), dtype=np.dtype('uint32'))
-                    for i in range(nleft):
-                        for j in range(nleft):
-                            if i != j:
-                                ii, jj = disjoint_items[i], disjoint_items[j]
-                                tmp_adj[i,j] = adj_mat[ii,jj]
-
-                    tmp_adj = minimum_spanning_tree(tmp_adj, overwrite=True)
-                    mst_cost = int(tmp_adj.sum())
-                                                        
-                    lower_est += mst_cost
+                    cost = prim_find_mst(disjoint_items, adj_mat)
+                    lower_est += int(cost)
                     
                 subnode.set_lower_est(lower_est)
                 
