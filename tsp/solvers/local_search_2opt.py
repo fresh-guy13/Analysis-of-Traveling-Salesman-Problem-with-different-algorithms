@@ -127,11 +127,11 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), p=1e-5, niters
     
     for _ in range(niters):
         
-        tour = initialize_tour(adj_mat)
+        tour = initialize_tour(adj_mat, greedy=False)
         visited.add(str(tour))
         
         improved = True
-        while improved:
+        while improved and time.time() - start_time < max_time:
             improved = False
             
             best_improvement = 0
