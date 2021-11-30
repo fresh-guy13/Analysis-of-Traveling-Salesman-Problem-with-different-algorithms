@@ -294,7 +294,7 @@ def branch_and_bound(tsp_data, max_time):
 
                 # Not a dead end, add node to queue
                 if subnode.lowerbound < best_solution.cost:
-                    #print(subnode.level, subnode.lowerbound, best_solution.cost, idx, int(time.time()-start_time))
+                    print(subnode.level, subnode.lowerbound, best_solution.cost, idx, int(time.time()-start_time))
                     heapq.heappush(F, subnode)
                     idx += 1
 
@@ -306,14 +306,16 @@ if __name__ == '__main__':
     import sys
     import time
     
-    from parse import parse
-
+    from tsp.parse import parse
+    from _solvers import branch_and_bound as bnb_cpp
+    
     filename = f"../DATA/{sys.argv[1]}.tsp"
 
     d = parse(filename)
 
-    sol = branch_and_bound(d, float('inf'))
+    #sol = branch_and_bound(d, float('inf'))
 
-    print(sol[1])
+    sol = bnb_cpp(d.coords)
+    
     
     

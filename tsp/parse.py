@@ -5,8 +5,8 @@ Provides parser for TSP files
 import numpy as np
 import re
 
-from edge_weight import get_edge_weight_func
-from graph import TspData
+from .edge_weight import get_edge_weight_func
+from .graph import TspData
 
 DIGIT = '-?\d+(\.\d+)?'
 
