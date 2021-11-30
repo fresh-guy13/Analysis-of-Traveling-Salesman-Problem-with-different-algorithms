@@ -1,5 +1,7 @@
 """
 Branch and Bound Solver
+
+TODO description
 """
 
 from collections import defaultdict
@@ -43,7 +45,11 @@ spec = [
 
 @jitclass(spec)
 class Bitset:
+    """
+    Set datastructure with a small memory footprint to hold nonnegative integers 0...N-1
     
+    Used for determining remaining nodes in the tour
+    """
     def __init__(self, N: int):
 
         self._N = N
@@ -56,7 +62,6 @@ class Bitset:
         return self._len
         
     def contains(self, item):
-        """Magic function used by 'in' syntax"""
         if item < self._N:
             block_idx, elem_idx = divmod(item, self._bitsize)
             return (self._bitset[block_idx] & (1 << elem_idx)) > 0
@@ -122,10 +127,14 @@ class Node:
 
     @property
     def priority(self):
+        """Prioritize leaf nodes with a smaller lower bound"""
         return self.lowerbound / self.level
     
     @property
     def path(self):
+        """
+        Returns the path of the tour up until this node
+        """
         if not hasattr(self, '_path'):
             path = []
             node = self
@@ -138,6 +147,9 @@ class Node:
         return self._path
 
     def expand(self, adj_mat):
+        """
+        Iterator over each node in the current subproblem
+        """
         level = self.level + 1
         for item in self.subproblem.items():
             new_subproblem = self.subproblem.copy()
@@ -149,26 +161,38 @@ class Node:
 
     @property
     def lowerbound(self):
-        # TODO update this
+        """
+        Lower bound is current distance plus lower estimation on remaining nodes
+        """
         return self.distance + self.lower_est
 
     def set_cost(self, cost):
+        """
+        Sets the total cost (should be done once a tour is complete).
+        Cost is equal to the distance for a full tour, which includes traveling back to start.
+        """
         self.cost = cost
 
     def set_lower_est(self, lower_est):
+        """
+        Set lower estimation on remaining nodes
+        """
         self.lower_est = lower_est
 
 @njit
 def direction(a, b, c):
+    """
+    Find direction by computing cross product.
+    Used for intersection code.
+    """
     return cross2d(c-a, b-a)
 
 @njit
 def intersect(a, b, c, d):
     """
-    Allow segments that share endpoints
+    Determine if line segments (a,b) and (c,d) intersect.
+    Allow segments that share endpoints.
     """
-    # if a == c or a == d or b == c or b == d:
-    #     return False
     d1 = direction(c,d,a)
     d2 = direction(c,d,b)
     d3 = direction(a,b,c)
@@ -180,7 +204,7 @@ def intersect(a, b, c, d):
         
 def branch_and_bound(tsp_data, max_time):
     """
-    TODO implement
+    Banch and bound solver
     """
 
     start_time = time.time()
@@ -191,7 +215,8 @@ def branch_and_bound(tsp_data, max_time):
         all_candidates.add(i)
 
     max_level = len(adj_mat) - 1
-        
+
+    # Priority queue holding most promising nodes
     F = [Node(0, all_candidates)]
     best_solution = F[0]
 
@@ -199,13 +224,19 @@ def branch_and_bound(tsp_data, max_time):
     trace = []
 
     def no_intersections(node):
+        """
+        Helper code for determining if adding this node 
+        results in an intersection among edges in tour
+        """
 
+        # If only 1 or 2 nodes in tour, then no intersection possible
         if node.parent is None or node.parent.parent is None:
             return True
-
+        
         cur_edge_b = tsp_data.coords[node.item]
         cur_edge_a = tsp_data.coords[node.parent.item]
 
+        # Loop through each previous edge in tour
         node = node.parent
         b = tsp_data.coords[node.item]
         while node.parent is not None:
@@ -232,6 +263,7 @@ def branch_and_bound(tsp_data, max_time):
         node = heapq.heappop(F)
         
         for subnode in node.expand(adj_mat):
+            # Solution found
             if subnode.level == max_level:                
                 subnode.set_cost(subnode.distance + adj_mat[subnode.item,0])
                 if subnode.cost < best_solution.cost:
@@ -259,9 +291,9 @@ def branch_and_bound(tsp_data, max_time):
                     lower_est += int(cost)
                     
                 subnode.set_lower_est(lower_est)
-                
+
+                # Not a dead end, add node to queue
                 if subnode.lowerbound < best_solution.cost:
-                    
                     #print(subnode.level, subnode.lowerbound, best_solution.cost, idx, int(time.time()-start_time))
                     heapq.heappush(F, subnode)
                     idx += 1
@@ -274,16 +306,14 @@ if __name__ == '__main__':
     import sys
     import time
     
-    sys.path.append("..")
-    from tsp import parse
-    
-    #filename = "../DATA/Roanoke.tsp"
-    filename = "../DATA/Atlanta.tsp"
+    from parse import parse
+
+    filename = f"../DATA/{sys.argv[1]}.tsp"
 
     d = parse(filename)
 
-    sol = branch_and_bound(d)
+    sol = branch_and_bound(d, float('inf'))
 
-    print(sol.cost)
+    print(sol[1])
     
     
