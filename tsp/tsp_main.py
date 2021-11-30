@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from solvers import Local_Search_SA, mst_approx, branch_and_bound, utils
+from solvers import Local_Search_SA, local_search_2opt, mst_approx, branch_and_bound, utils
 
 def main():
     # TODO: parse args and call solver
@@ -27,9 +27,9 @@ def run_tsp_main(inst, algorithm, seed, maxtime, odir):
     if algorithm == 'BnB':
         best_solution, trace = branch_and_bound.branch_and_bound(data, maxtime)
         best_dist = best_solution.cost
-        best_path = best_solution.path
+        best_tour = best_solution.path
         
-        utils.gen_solution_file(best_dist, best_path, sol_path)
+        utils.gen_solution_file(best_dist, best_tour, sol_path)
         utils.gen_trace_file(trace, trace_path)
         
     elif algorithm == 'Approx':
@@ -48,8 +48,12 @@ def run_tsp_main(inst, algorithm, seed, maxtime, odir):
         utils.gen_solution_file(solution[0], solution[1], sol_path)
         utils.gen_trace_file(solution[2], trace_path)
     elif algorithm == 'LS2':
-        #TODO: Run the LS2 Solution
-        print("Use the LS2 algorithm")
+
+        best_tour, best_dist, trace = local_search_2opt.local_search_2opt(data, seed, maxtime)
+
+        utils.gen_solution_file(best_dist, best_tour, sol_path)
+        utils.gen_trace_file(trace, trace_path)
+        
     else:
         print("The {} algorithm is not supported, please try another".format(algorithm))
     
