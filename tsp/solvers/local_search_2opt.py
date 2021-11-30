@@ -1,3 +1,9 @@
+"""
+Local search solver using 2-OPT
+
+TODO description
+"""
+
 from itertools import combinations
 import numpy as np
 from numba import jit, njit
@@ -19,7 +25,9 @@ def feasible_edge(i, j, n):
 
 @njit
 def edge_pair(i, j):
-    
+    """
+    Ensures i < j (used for flipping properly)
+    """
     if i > j:
         i, j = j, i
 
@@ -93,15 +101,18 @@ def initialize_tour(adj_mat, greedy=True):
     return tour
 
 def tour_dist(adj_mat, tour):
+    """
+    Computes distance of tour
+    """
     dist = 0
     for i in range(1, len(adj_mat)):
         dist += adj_mat[tour[i-1], tour[i]]
     dist += adj_mat[tour[-1], 0]
     return dist
 
-def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), p=1e-5, niters=10):
+def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), niters=10):
     """
-    p: probability of accepting worse solution
+    Local search 2-OPT solver
     """
     start_time = time.time()
 
@@ -118,7 +129,8 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), p=1e-5, niters
             lambda c: feasible_edge(c[0], c[1], n),
             combinations(random.sample(range(n), n), 2)
         )
-        
+
+    # Set for ensuring we don't converge to an already visited tour
     visited = set()
 
     best_tour = None
@@ -129,7 +141,8 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), p=1e-5, niters
         
         tour = initialize_tour(adj_mat, greedy=False)
         visited.add(str(tour))
-        
+
+        # Iterate until no improvement gained from 2-opt flipping
         improved = True
         while improved and time.time() - start_time < max_time:
             improved = False
@@ -137,6 +150,7 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), p=1e-5, niters
             best_improvement = 0
             best_flip = None
 
+            # Search for best flip
             for i, j in feasible_edges():
                 gain = flip_gain(adj_mat, tour, i, j)
                 if gain > best_improvement:
@@ -152,9 +166,10 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), p=1e-5, niters
                 improved = True
 
         cur_dist = tour_dist(adj_mat, tour)
+
         if cur_dist < best_dist:
             trace.append([cur_dist, time.time() - start_time])
-            print(trace[-1])
+            #print(trace[-1])
             best_tour = tour
             best_dist = cur_dist
 
@@ -168,13 +183,6 @@ if __name__ == '__main__':
 
     filename = f"../DATA/{sys.argv[1]}.tsp"
     
-    #filename = "../DATA/Roanoke.tsp"
-    #filename = "../DATA/Atlanta.tsp"
-    #filename = "../DATA/Denver.tsp"
-    
     d = parse(filename)
-    
-    s = time.time()
-
     sol = local_search_2opt(d)
     
