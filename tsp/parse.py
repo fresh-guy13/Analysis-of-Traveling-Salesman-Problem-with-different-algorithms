@@ -67,15 +67,12 @@ def parse(filename: str) -> TspData:
 
 if __name__ == '__main__':
     
-    # Just a quick test to make sure all the files parse correctly
-    
+    # Test to make sure all the files parse correctly
     import glob
     files = glob.glob("../DATA/*.tsp")
     
     for f in files:
         d = parse(f)
         assert(d.dim == len(d.coords))
-        print(d.to_adjacency_mat())
-        break
 
     

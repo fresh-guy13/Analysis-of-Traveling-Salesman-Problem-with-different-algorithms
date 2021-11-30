@@ -32,11 +32,9 @@ def euc_2d(a, b):
     Calculates Euclidean 2D distance and rounds to closest int
     """
     assert(len(a) == len(b) == 2)
-    return round(
-        np.sqrt(
+    return round(np.sqrt(
             (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
-        )
-    )
+        ))
 
 ######################
 # Register functions #

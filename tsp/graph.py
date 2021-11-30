@@ -13,7 +13,7 @@ class TspData:
     name: str
     comment: str
     dim: int
-    edge_weight: Callable[[float, float], float]
+    edge_weight: Callable[[Coord], float]
     coords: np.ndarray
 
     def to_adjacency_mat(self):
