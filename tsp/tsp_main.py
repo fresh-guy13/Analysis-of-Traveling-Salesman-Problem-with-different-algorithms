@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from parse import parse
 from solvers import Local_Search_SA, local_search_2opt, mst_approx, branch_and_bound, utils
 
 def main():
