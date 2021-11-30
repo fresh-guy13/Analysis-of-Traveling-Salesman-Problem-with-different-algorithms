@@ -1,3 +1,7 @@
+# Project output files
+# *.sol
+# *.trace
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
