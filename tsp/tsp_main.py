@@ -1,7 +1,6 @@
 import argparse
 from pathlib import Path
-from parse import parse
-from solvers import Local_Search_SA, branch_and_bound, utils
+from solvers import Local_Search_SA, mst_approx, branch_and_bound, utils
 
 def main():
     # TODO: parse args and call solver
@@ -36,6 +35,11 @@ def run_tsp_main(inst, algorithm, seed, maxtime, odir):
     elif algorithm == 'Approx':
         #TODO: Run Approximate Solution
         print("Use the Approx algorithm")
+        sol_instance = mst_approx.MSTApprox(dist_matrix, seed)
+        solution = sol_instance.solve()
+        print("The min distance of {} is {}".format(algorithm, solution[0]))
+        utils.gen_solution_file(solution[0], solution[1], sol_path)
+        utils.gen_trace_file(solution[2], trace_path)
     elif algorithm == 'LS1':
         #TODO: Run the LS1 (Simulated Annealing)Solution
         sol_instance = Local_Search_SA.LS1_SA(dist_matrix, 0.00001, seed, maxtime)
