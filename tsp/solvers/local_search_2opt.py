@@ -169,7 +169,7 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), niters=10):
 
         if cur_dist < best_dist:
             trace.append([cur_dist, time.time() - start_time])
-            #print(trace[-1])
+            print(trace[-1])
             best_tour = tour
             best_dist = cur_dist
 
@@ -178,7 +178,7 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), niters=10):
 
 if __name__ == '__main__':
 
-    from parse import parse
+    from tsp.parse import parse
     import sys
 
     filename = f"../DATA/{sys.argv[1]}.tsp"

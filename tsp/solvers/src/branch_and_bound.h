@@ -57,7 +57,8 @@ struct TspNode
     }
 
     double priority() const {
-	return (distance == 0) ? 0 : (double)level / lowerbound();
+	double num = level;
+	return (distance == 0) ? 0 : num / lowerbound();
     }
     
     uint32_t lowerbound() const { return distance + lower_est; }

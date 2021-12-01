@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <climits>
 #include <iostream>
@@ -142,6 +143,8 @@ bool intersect(Coord a, Coord b, Coord c, Coord d)
     
 Solution solve(const std::vector<Coord>& coords)
 {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
     DistanceMatrix dist_mat(coords);
 
     for (const auto& coord : coords) {
@@ -155,13 +158,15 @@ Solution solve(const std::vector<Coord>& coords)
 
     uint32_t max_level = coords.size() - 1;
 
-    std::priority_queue<std::shared_ptr<TspNode>,
-			std::vector<std::shared_ptr<TspNode>>,
-			NodeCmp> node_queue;
-    node_queue.push(std::shared_ptr<TspNode>(new TspNode(0, std::move(all_candidates))));
+    bool depth_first = false;
+    size_t max_level_reached = 0;
+    size_t n_at_max = 0;
+    size_t max_at_max = 10000;
+    
+    std::vector<std::shared_ptr<TspNode>> node_queue;
+    node_queue.push_back(std::shared_ptr<TspNode>(new TspNode(0, std::move(all_candidates))));
 
-    // TODO construct initial solution
-    auto node_ptr = node_queue.top();
+    auto node_ptr = node_queue.front();
     for (size_t l = 0; l < max_level; ++l) {
 	auto best_subnode = node_ptr;
 	uint32_t best_dist = UINT_MAX;
@@ -176,7 +181,7 @@ Solution solve(const std::vector<Coord>& coords)
     std::shared_ptr<TspNode> best_solution = node_ptr;
     best_solution->cost = best_solution->distance + dist_mat.at(best_solution->index, 0);
     std::cout << best_solution->level << '\n';
-
+    
     std::vector<TraceItem> trace;
 
     auto no_intersections = [&](const std::shared_ptr<TspNode>& node) {
@@ -202,33 +207,52 @@ Solution solve(const std::vector<Coord>& coords)
 
 	return true;
     };
-
-    auto get_time = [=]() -> double {return 0;};
-
-    size_t idx = 0;
     
-    while (!node_queue.empty()) {
-	std::shared_ptr<TspNode> node = node_queue.top();
-	node_queue.pop();
+    auto get_time = [=]() -> double {
+        using namespace std::chrono;	
 
+	auto time_now = high_resolution_clock::now();
+	duration<double> ts = time_now - start_time;
+	return ts.count();
+    };
+        
+    while (!node_queue.empty()) {
+	    auto node = node_queue.back();
+	    if (!depth_first) {
+		node = node_queue.front();
+		std::pop_heap(node_queue.begin(), node_queue.end(), NodeCmp());
+	    }
+	    node_queue.pop_back();
+	    
 	for (auto& subnode : node->expand(dist_mat)) {
+
 	    if (subnode->level == max_level) {
 		subnode->cost = subnode->distance + dist_mat.at(subnode->index, 0);
 		if (subnode->cost < best_solution->cost) {
 		    best_solution = subnode;
 		    trace.push_back({best_solution->cost, get_time()});
+		    if (depth_first) {
+			depth_first = false;
+			std::make_heap(node_queue.begin(), node_queue.end(), NodeCmp());
+		    }
 		}
 	    }
 	    else {
 		if (!no_intersections(subnode)) {
 		    continue;
 		}
-
+	    
 		subnode->update_lower_est(dist_mat);
 
 		if (subnode->lowerbound() < best_solution->cost) {
-		    std::cout << subnode->level << ", " << subnode->lowerbound() << "," << best_solution->cost << ", " << idx++ << '\n';
-		    node_queue.push(subnode);
+		    node_queue.push_back(subnode);
+		    if (!depth_first)
+			std::push_heap(node_queue.begin(), node_queue.end(), NodeCmp());
+		    std::cout << subnode->level << ", "
+			      << subnode->lowerbound() << ", "
+			      << best_solution->cost << ", "
+			      << get_time() << ", "
+			      << node_queue.size() << '\n';
 		}
 	    }
 	}
