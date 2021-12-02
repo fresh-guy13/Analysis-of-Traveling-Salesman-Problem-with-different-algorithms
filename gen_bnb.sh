@@ -2,7 +2,7 @@
 
 for instance in DATA/*.tsp
 do
-    for alg in Approx Bnb
+    for alg in Approx BnB
     do
         city="$(basename -- $instance .tsp)"
         mkdir -p "batchout/$city$alg"
