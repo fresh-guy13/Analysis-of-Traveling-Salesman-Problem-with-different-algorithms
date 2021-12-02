@@ -153,7 +153,8 @@ def main():
     parser.add_argument('-prefix', action="store", dest="fname_prefix", help="Prefix of output files")
     parser.add_argument('-qrtd', action="store_true", dest="qrtd", help="Plot qualified RTD")
     parser.add_argument('-qualities', type=float, nargs="+", dest="qualities", help="List of solution qualities")
-    parser.add_argument('-times', type=float, nargs="+", dest="times", help="List of times (for SQD plot)")
+    parser.add_argument('-times', type=float, nargs="+", dest="times", help="List of cutoff times (for SQD plot)")
+    parser.add_argument('-maxruntime', type=int, dest="maxruntime", help="Maximum runtime allowed for batch")
     parser.add_argument('-rtd', action="store_true", dest="rtd", help="Plot runtime distribution")
     parser.add_argument('-sqd', action="store_true", dest="sqd", help="Plot SQD")
     parser.add_argument('-boxplot', action="store_true", dest="boxplot", help="Make box plots of running times")
@@ -165,6 +166,9 @@ def main():
     boxplot_data_dict = {}
     for fname in args.tracefiles:
         trace = np.array(pd.read_csv(fname, names=['time', 'score']))
+        if args.maxruntime:
+            maxscore = np.max(trace[:,1])
+            trace = np.append(trace, np.array([[args.maxruntime, maxscore]]), axis=0)
         traces.append(trace)
         basename = os.path.basename(fname)
         s = basename.split("_")

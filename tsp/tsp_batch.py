@@ -4,7 +4,7 @@ Batch runner for tsp_main
 import argparse
 import sys
 import random
-from tsp_main import run_tsp_main
+from tsp.tsp_main import run_tsp_main
 
 def main():
     # TODO: parse args and call solver
