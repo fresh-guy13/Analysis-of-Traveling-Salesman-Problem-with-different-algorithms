@@ -1,8 +1,5 @@
 /**
  * Branch and bound solver
- *
- * Description: TODO 
- *  
  */
 #include <algorithm>
 #include <chrono>

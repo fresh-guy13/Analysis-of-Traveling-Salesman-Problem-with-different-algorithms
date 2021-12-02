@@ -1,3 +1,15 @@
+"""
+Main TSP script for running solvers
+
+Usage:
+    python3 tsp_main.py -inst <filename> 
+                        -alg [BnB | Approx | LS1 | LS2] 
+                        -time <cuttoff time in seconds> 
+                        [-seed <random seed>]
+                        [-odir <output directory>]
+                        [-debug]
+"""
+
 import argparse
 import logging
 from pathlib import Path

@@ -1,5 +1,5 @@
 """
-Utils functions for solvers
+Util functions for solvers
 """
 
 import numpy as np

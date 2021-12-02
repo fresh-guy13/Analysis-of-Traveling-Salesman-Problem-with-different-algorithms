@@ -1,7 +1,5 @@
 """
-Local search solver using 2-OPT
-
-TODO description
+Local search solver using 2-OPT exchange
 """
 
 from itertools import combinations
@@ -9,6 +7,7 @@ import numpy as np
 from numba import jit, njit
 import random
 import time
+
 
 @njit
 def feasible_edge(i, j, n):
@@ -23,6 +22,7 @@ def feasible_edge(i, j, n):
         return False
     return True
 
+
 @njit
 def edge_pair(i, j):
     """
@@ -32,14 +32,15 @@ def edge_pair(i, j):
         i, j = j, i
 
     return i, j
-    
+
+
 @njit
 def flip(tour, i, j):
     """
     Performs 2 opt flip
     
-    Swaps edges (i,i+1) and (j,j+1) with edges (i,j) and (i+1,j+1)
-    Assume i < j
+    Swaps edges (i,i+1) and (j,j+1) with edges (i,j) and (i+1,j+1).
+    Note: an edge swap also reverses the paths between the swapped nodes
     """
 
     i, j = edge_pair(i, j)
@@ -55,6 +56,7 @@ def flip(tour, i, j):
         hi -= 1
 
     return tour
+
 
 @njit
 def flip_gain(adj_mat, tour, i, j):
@@ -78,6 +80,7 @@ def flip_gain(adj_mat, tour, i, j):
         return weights_before - weights_after
     else:
         return 0
+
     
 def initialize_tour(adj_mat, greedy=True):
     """Initializes tour using greedy approach or randomization"""
@@ -87,6 +90,7 @@ def initialize_tour(adj_mat, greedy=True):
         unvisited = set(range(1, len(adj_mat)))
         for i in range(1, len(adj_mat)):
             best_weight = float('inf')
+            # Find closest neighbor 
             for neighbor in unvisited:
                 if adj_mat[i-1, neighbor] < best_weight:
                     tour[i] = neighbor
@@ -100,6 +104,7 @@ def initialize_tour(adj_mat, greedy=True):
 
     return tour
 
+
 def tour_dist(adj_mat, tour):
     """
     Computes distance of tour
@@ -109,6 +114,7 @@ def tour_dist(adj_mat, tour):
         dist += adj_mat[tour[i-1], tour[i]]
     dist += adj_mat[tour[-1], 0]
     return dist
+
 
 def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), niters=10, debug=False):
     """
@@ -137,10 +143,10 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), niters=10, deb
     best_tour = None
     best_dist = float('inf')
     trace = []
-    
+
     for _ in range(niters):
 
-        # Randomly decide to do greedy initialization
+        # Initialize tour (random or greedy)
         greedy = False if random.random() < 0.5 else True
         tour = initialize_tour(adj_mat, greedy=True)
         
@@ -154,6 +160,7 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), niters=10, deb
             best_improvement = 0
             best_flip = None
 
+            # Whether to step to first improvement or best
             just_first_improvement = False if random.random() < 0.5 else True
 
             # Search for best flip
@@ -164,16 +171,17 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), niters=10, deb
                     if str(new_tour) not in visited:
                         best_improvement = gain
                         best_flip = (i, j)
-                        
                         if just_first_improvement:
                             break
 
+            # Update current tour
             if best_improvement > 0:
                 i, j = best_flip
                 flip(tour, i, j)
                 visited.add(str(tour))
                 improved = True
 
+        # Determine if current tour is the best seen
         cur_dist = tour_dist(adj_mat, tour)
 
         if cur_dist < best_dist:
@@ -187,7 +195,9 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), niters=10, deb
 
 
 class LS2_2opt:
-
+    """
+    Solver interface
+    """
     def __init__(self, tsp_data, seed=None, max_time=float('inf'), niters=10, debug=False):
         
         self.tsp_data = tsp_data

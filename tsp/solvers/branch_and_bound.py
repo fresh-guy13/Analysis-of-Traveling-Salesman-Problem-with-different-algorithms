@@ -1,7 +1,9 @@
 """
 Branch and Bound Solver
 
-TODO description
+Note:
+  This file includes a python bnb solver, but also adds an interface to a cpp
+  implementation. The default is the cpp version.
 """
 
 from collections import defaultdict
@@ -19,6 +21,9 @@ from _solvers import branch_and_bound as bnb_cpp
 
 @njit
 def prim_find_mst(disjoint_items, dist_mat):
+    """
+    Calculates minimum spanning tree weight using Prim's algorithm
+    """
     N = len(disjoint_items)
     cost = 0.0
     tree = Bitset(N)
@@ -37,6 +42,7 @@ def prim_find_mst(disjoint_items, dist_mat):
     return cost
 
 
+# For Bitset class below
 spec = [
     ('_N', uint32),
     ('_bitsize', uint32),
@@ -210,11 +216,13 @@ def branch_and_bound_py(tsp_data, max_time, debug=False, **kwargs):
 
     start_time = time.time()
     adj_mat = tsp_data.to_adjacency_mat()
-    
+
+    # Initialize unvisited vertices
     all_candidates = Bitset(len(adj_mat))
     for i in range(1, len(adj_mat)):
         all_candidates.add(i)
 
+    # Level of terminal leaf nodes
     max_level = len(adj_mat) - 1
 
     # Priority queue holding most promising nodes
@@ -249,24 +257,18 @@ def branch_and_bound_py(tsp_data, max_time, debug=False, **kwargs):
             b = a
 
         return True
-    
-    # iters = 0
-    # ctime = start_time
+
+    # Main branch-and-bound loop
     while F and (time.time()-start_time) < max_time:
-        # ctime = start_time
-        # iters += 1
-        # if iters == 1000:
-        #     iters = 0
-        #     ptime = time.time()
-        #     print(ptime - ctime, best_solution.cost)
-        #     ctime = ptime
-                
-        node = heapq.heappop(F)
         
+        node = heapq.heappop(F)
+
+        # Expand subproblem
         for subnode in node.expand(adj_mat):
             # Solution found
             if subnode.level == max_level:                
                 subnode.set_cost(subnode.distance + adj_mat[subnode.item,0])
+                # Best solution?
                 if subnode.cost < best_solution.cost:
                     best_solution = subnode
                     trace.append([best_solution.cost, time.time()-start_time])
@@ -304,6 +306,9 @@ def branch_and_bound_py(tsp_data, max_time, debug=False, **kwargs):
 
 
 def branch_and_bound_cpp(tsp_data, max_time, depth_first=False, debug=False):
+    """
+    Interface to cpp branch-and-bound implementation
+    """
     solution = bnb_cpp(tsp_data.coords, max_time, depth_first, debug)
     best_tour = solution.tour
     best_dist = solution.distance
@@ -316,6 +321,9 @@ def branch_and_bound_cpp(tsp_data, max_time, depth_first=False, debug=False):
 
 
 def branch_and_bound(tsp_data, max_time, debug=False, lang='cpp'):
+    """
+    Forwards args to selected language's implementation
+    """
     if lang == 'cpp':
         return branch_and_bound_cpp(tsp_data, max_time, debug=debug)
     elif lang == 'py':
@@ -323,7 +331,9 @@ def branch_and_bound(tsp_data, max_time, debug=False, lang='cpp'):
 
     
 class BranchAndBound:
-
+    """
+    Solver interface
+    """
     def __init__(self, tsp_data, max_time, debug=False, lang='cpp'):
         self.tsp_data = tsp_data
         self.max_time = max_time
@@ -348,7 +358,7 @@ if __name__ == '__main__':
     filename = f"../DATA/{sys.argv[1]}.tsp"
     d = parse(filename)
     
-    sol = branch_and_bound(d, 10)
+    sol = branch_and_bound(d, 600)
     print(sol)
     
     

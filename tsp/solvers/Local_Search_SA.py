@@ -1,7 +1,5 @@
 """
 Local search with simulated annealing
-
-TODO: Description
 """
 
 import sys, time

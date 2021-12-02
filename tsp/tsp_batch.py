@@ -1,3 +1,6 @@
+"""
+Batch runner for tsp_main
+"""
 import argparse
 import sys
 import random
@@ -25,7 +28,6 @@ def main():
         print("Iteration {}, seed {}".format(i, iter_seed))
         run_tsp_main(args.inst, args.algorithm, iter_seed, args.maxtime, args.odir)
 
-
-    
+        
 if __name__ == '__main__':
     main()

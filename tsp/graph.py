@@ -1,5 +1,5 @@
 """
-Graph related stuff
+Access to TSP graph
 """
 
 from dataclasses import dataclass

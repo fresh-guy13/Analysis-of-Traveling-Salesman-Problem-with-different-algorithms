@@ -1,3 +1,6 @@
+"""
+Approximation solver using MST
+"""
 import sys, time
 
 import numpy as np
