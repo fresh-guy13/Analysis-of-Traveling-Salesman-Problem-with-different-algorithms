@@ -1,4 +1,7 @@
-#### Utils function for solvers###
+"""
+Utils functions for solvers
+"""
+
 import numpy as np
 import random
 from numba import jit, njit
@@ -29,9 +32,9 @@ def gen_solution_file(dist, arr, file_name):
     #dist is the solution found by the algorithm
     with open(file_name, "w") as file:
         file.writelines(str(dist)+'\n')
-        file.writelines(str(arr[0] - 1))
+        file.writelines(str(arr[0]))
         for i in arr[1:]:
-            file.write(','+str(i-1))
+            file.write(','+str(i))
 
 def gen_trace_file(time_dist, file_name):
     with open(file_name, "w") as file:

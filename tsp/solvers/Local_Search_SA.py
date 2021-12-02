@@ -1,11 +1,16 @@
+"""
+Local search with simulated annealing
+
+TODO: Description
+"""
+
 import sys, time
 from . import utils
-sys.path.append("./tsp/")
-#from parse import parse
 import numpy as np
 import math
 import random
 import itertools
+
 class LS1_SA(object):
     def __init__(self, dist_mat, cooling_rate, seed, max_time):
         self.dist_mat = dist_mat
@@ -18,6 +23,7 @@ class LS1_SA(object):
         self.seed = seed
         self.max_time = max_time
         self.trace = []
+        
     def RestartToBest(self):
         return 0, np.copy(self.best_solution), np.copy(self.best_dist)
 
@@ -64,7 +70,6 @@ class LS1_SA(object):
                     curr_solution[r_pair[0]], curr_solution[r_pair[1]] = curr_solution[r_pair[1]], curr_solution[r_pair[0]]
                 stay_num += 1
             
-
             j += 1
             # Replenish supply of random numbers
             if j >= NRAND:
@@ -77,14 +82,26 @@ class LS1_SA(object):
                 stay_num, curr_solution, curr_dist = self.RestartToBest()
             self.Temp *= (1 - self.cooling_rate)
             exe_time = time.time() - start_time
+            
         #print(n_iters)
+        
     def Simulated_Annealing(self):
         #Set seed for the randomness
         np.random.seed(self.seed)
         self.rng = np.random.default_rng(self.seed)
+
         #Generate random solution for the problem
         self.SA_process()
+
+        # Just some bookkeeping to ensure 0 is the first vertex in path
+        self.best_solution -= np.min(self.best_solution) # ensure 0-index
+        shift = np.where(self.best_solution == 0)[0][0]
+        self.best_solution = np.roll(self.best_solution, -shift)
+        
         return self.best_dist, self.best_solution, self.trace
+
+    def solve(self):
+        return self.Simulated_Annealing()
 
 
 if __name__ == '__main__':

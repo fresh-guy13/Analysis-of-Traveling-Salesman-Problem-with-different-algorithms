@@ -66,7 +66,12 @@ class MSTApprox:
         self.trace.append([time.time() - self.start_time, pathcost])
 
         self.best_dist = pathcost
-        self.best_solution = np.array(path) + 1
+        self.best_solution = np.array(path)
+
+        # Just some bookkeeping to ensure 0 is the first vertex in path
+        shift = np.where(self.best_solution == 0)[0][0]
+        self.best_solution = np.roll(self.best_solution, -shift)
+        
         return self.best_dist, self.best_solution, self.trace
 
 
