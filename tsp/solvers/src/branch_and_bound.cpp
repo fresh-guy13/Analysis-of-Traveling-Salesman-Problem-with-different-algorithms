@@ -234,11 +234,13 @@ Solution solve(const std::vector<Coord>& coords, float max_time, bool depth_firs
 		}
 	    }
 	    else {
-		// Optimal solutions contain no intersections
-		if (!no_intersections(subnode)) {
-		    continue;
-		}
-
+		// Optimal solutions contain no intersections.
+		// However, it's may be much faster to find suboptimal tours
+		// that contain intersections.
+		// if (!no_intersections(subnode)) {
+		//     continue;
+		// }
+		
 		// Update lower estimation of remaining nodes (MST lower bound
 		// functions)
 		subnode->update_lower_est(dist_mat);
