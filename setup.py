@@ -5,7 +5,6 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-
 ext_modules = [
     Pybind11Extension("_solvers",
                       sorted(glob("tsp/solvers/src/*.cpp")),
@@ -24,10 +23,8 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
     ],
-    #package_dir={"": "tsp"},
-    #packages=setuptools.find_packages(where="tsp"),
-    packages=["tsp"],
-    python_requires=">=3.6",
+    packages=setuptools.find_packages(),
+    python_requires=">=3.8",
     cmdclass={"build_ext": build_ext},
     ext_modules=ext_modules
 )
