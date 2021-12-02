@@ -144,8 +144,8 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), niters=10, deb
     best_dist = float('inf')
     trace = []
 
-    for _ in range(niters):
-
+    while time.time() - start_time < max_time:
+        
         # Initialize tour (random or greedy)
         greedy = False if random.random() < 0.5 else True
         tour = initialize_tour(adj_mat, greedy=True)
@@ -159,7 +159,7 @@ def local_search_2opt(tsp_data, seed=None, max_time=float('inf'), niters=10, deb
 
         # Iterate until no improvement gained from 2-opt flipping
         improved = True
-        while improved and time.time() - start_time < max_time:
+        while improved:
             improved = False
             
             best_improvement = 0
