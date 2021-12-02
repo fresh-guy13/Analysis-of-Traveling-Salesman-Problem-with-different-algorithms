@@ -48,7 +48,7 @@ Running this will result in two files being generated:
      ```
    
 2. `<instance>_<method>_<cutoff>[_<random_seed>].trace`
-   - Contains a timestamped log of the best tour distances as (distance, tour) pairs.
+   - Contains a timestamped log of the best tour distances as (distance, time) pairs.
    - Example:
      ```
      100, 0.1
