@@ -15,6 +15,7 @@ def main():
     parser.add_argument('-batch-size', type=int, dest='batch_size', default=1, help='Number of runs in the batch')
     parser.add_argument('-time', type=int, dest='maxtime', default=10, help='The cutoff time of the algorithm')
     parser.add_argument('-odir', type=str, dest='odir', default=".", help='Where to store output files')
+    parser.add_argument('-appendtottime', action='store_true', default=False, help="Whether to append [total_runtime, score] to trace files")
     args = parser.parse_args()
 
     if not args.inst:
@@ -26,7 +27,7 @@ def main():
     for i in range(args.batch_size):
         iter_seed = random.randint(0, seedmax)
         print("Iteration {}, seed {}".format(i, iter_seed))
-        run_tsp_main(args.inst, args.algorithm, iter_seed, args.maxtime, args.odir)
+        run_tsp_main(args.inst, args.algorithm, iter_seed, args.maxtime, args.odir, appendtottime=args.appendtottime)
 
         
 if __name__ == '__main__':
