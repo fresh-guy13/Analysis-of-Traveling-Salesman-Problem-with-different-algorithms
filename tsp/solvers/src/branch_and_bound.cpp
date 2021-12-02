@@ -217,6 +217,10 @@ Solution solve(const std::vector<Coord>& coords, float max_time, bool depth_firs
 	    std::pop_heap(node_queue.begin(), node_queue.end(), NodeCmp());
 	}
 	node_queue.pop_back();
+	if(node->lowerbound() >= best_solution->cost) {
+		// don't expand if this node became a dead end
+		continue;
+	}
 
 	// Expand subproblem
 	for (auto& subnode : node->expand(dist_mat)) {
