@@ -315,7 +315,7 @@ def branch_and_bound_cpp(tsp_data, max_time, depth_first=False, debug=False):
 
     trace = []
     for trace_item in solution.trace:
-        trace.append([trace_item.distance, trace_item.time])
+        trace.append([trace_item.time, trace_item.distance])
 
     return best_dist, best_tour, trace
 

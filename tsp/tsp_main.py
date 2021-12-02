@@ -12,7 +12,10 @@ Usage:
 
 import argparse
 import logging
+import time
 from pathlib import Path
+
+from numpy import append
 from tsp.parse import parse
 from tsp.solvers import BranchAndBound, LS1_SA, LS2_2opt, MSTApprox, utils
 
@@ -28,11 +31,12 @@ def main():
     parser.add_argument('-time', type=int, dest='maxtime', default=10, help='The cutoff time of the algorithm')
     parser.add_argument('-odir', type=str, dest='odir', default=".", help='Where to store output files')
     parser.add_argument('-debug', action='store_true', default=False, help="Whether to print debug statements")
+    parser.add_argument('-appendtottime', action='store_true', default=False, help="Whether to append [total_runtime, score] to trace files")
     args = parser.parse_args()
-    run_tsp_main(args.inst, args.algorithm, args.seed, args.maxtime, args.odir, args.debug)
+    run_tsp_main(args.inst, args.algorithm, args.seed, args.maxtime, args.odir, args.debug, args.appendtottime)
 
     
-def run_tsp_main(inst, algorithm, seed, maxtime, odir, debug=False):
+def run_tsp_main(inst, algorithm, seed, maxtime, odir, debug=False, appendtottime=False):
     """
     Run selected solver with given parameters
     """
@@ -66,8 +70,15 @@ def run_tsp_main(inst, algorithm, seed, maxtime, odir, debug=False):
         exit(0)
 
     # Solve using selected solver
+    start_time = time.time()
     best_dist, best_tour, trace = solver.solve()
+    end_time = time.time()
+
     print(f"The min distance of {algorithm} is {best_dist}")
+
+    if appendtottime:
+        print("Appending redundant entry [total_runtime, bestscore] to trace")
+        trace.append([end_time - start_time, best_dist])
     
     # Generate trace files
     utils.gen_solution_file(best_dist, best_tour, sol_path)
