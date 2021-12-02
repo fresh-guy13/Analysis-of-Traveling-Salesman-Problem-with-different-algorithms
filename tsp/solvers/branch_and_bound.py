@@ -12,9 +12,10 @@ import numpy as np
 from numba.experimental import jitclass
 from numba import uint32, jit, njit
 from numba.np.extensions import cross2d
-from scipy.sparse.csgraph import minimum_spanning_tree
 import time
 from heapq import heappush, heappop
+
+from _solvers import branch_and_bound as bnb_cpp
 
 @njit
 def prim_find_mst(disjoint_items, dist_mat):
@@ -202,7 +203,7 @@ def intersect(a, b, c, d):
         return True
     return False
         
-def branch_and_bound(tsp_data, max_time):
+def branch_and_bound_py(tsp_data, max_time, debug=False, **kwargs):
     """
     Banch and bound solver
     """
@@ -294,12 +295,44 @@ def branch_and_bound(tsp_data, max_time):
 
                 # Not a dead end, add node to queue
                 if subnode.lowerbound < best_solution.cost:
-                    print(subnode.level, subnode.lowerbound, best_solution.cost, idx, int(time.time()-start_time))
+                    if debug:
+                        print(subnode.level, subnode.lowerbound, best_solution.cost, idx, int(time.time()-start_time))
                     heapq.heappush(F, subnode)
                     idx += 1
 
-    return best_solution, trace
+    return best_solution.cost, best_solution.path, trace
 
+
+def branch_and_bound_cpp(tsp_data, max_time, depth_first=False, debug=False):
+    solution = bnb_cpp(tsp_data.coords, max_time, depth_first, debug)
+    best_tour = solution.tour
+    best_dist = solution.distance
+
+    trace = []
+    for trace_item in solution.trace:
+        trace.append([trace_item.distance, trace_item.time])
+
+    return best_dist, best_tour, trace
+
+
+def branch_and_bound(tsp_data, max_time, debug=False, lang='cpp'):
+    if lang == 'cpp':
+        return branch_and_bound_cpp(tsp_data, max_time, debug=debug)
+    elif lang == 'py':
+        return branch_and_bound_py(tsp_data, max_time, debug=debug)
+
+    
+class BranchAndBound:
+
+    def __init__(self, tsp_data, max_time, debug=False, lang='cpp'):
+        self.tsp_data = tsp_data
+        self.max_time = max_time
+        self.debug = debug
+        self.lang = lang
+
+    def solve(self):
+        return branch_and_bound(self.tsp_data, self.max_time, self.debug, self.lang)
+    
 
 if __name__ == '__main__':
 
@@ -307,15 +340,16 @@ if __name__ == '__main__':
     import time
     
     from tsp.parse import parse
-    from _solvers import branch_and_bound as bnb_cpp
+
+    if (len(sys.argv) < 2):
+        print("Usage: branch_and_bound.py <city>")
+        exit(0)
     
     filename = f"../DATA/{sys.argv[1]}.tsp"
-
     d = parse(filename)
-
-    #sol = branch_and_bound(d, float('inf'))
-
-    sol = bnb_cpp(d.coords)
+    
+    sol = branch_and_bound(d, 10)
+    print(sol)
     
     
     

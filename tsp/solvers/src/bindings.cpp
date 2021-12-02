@@ -1,3 +1,7 @@
+/**
+ * Python bindings to cpp solvers
+ */
+
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
@@ -5,7 +9,7 @@
 
 namespace py = pybind11;
 
-BnB::Solution bnb(const py::array_t<double>& coords)
+BnB::Solution bnb(const py::array_t<double>& coords, float max_time, bool depth_first, bool debug)
 {
     py::buffer_info buf = coords.request();
 
@@ -19,13 +23,19 @@ BnB::Solution bnb(const py::array_t<double>& coords)
 
     BnB::Coord *ptr = static_cast<BnB::Coord*>(buf.ptr);
     
-    return BnB::solve({ptr, ptr+buf.size/2});
+    auto solution = BnB::solve({ptr, ptr+buf.size/2}, max_time, depth_first, debug);
+
+    // To allow keyboard interrupts
+    PyErr_Clear();
+    
+    return solution;
 }
 
 PYBIND11_MODULE(_solvers, m) {
    m.doc() = "c++ extensions for solvers";
    
-   m.def("branch_and_bound", &bnb, "Branch and bound solver");
+   m.def("branch_and_bound", &bnb, "Branch and bound solver",
+	 py::arg("coords"), py::arg("max_time"), py::arg("depth_first")=false, py::arg("debug")=false);
 
    py::class_<BnB::Solution>(m, "bnb_solution")
        .def_readwrite("tour", &BnB::Solution::tour)
