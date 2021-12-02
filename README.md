@@ -2,9 +2,9 @@
 
 Final project for CSE 6140
 
-Solvers for the Traveling Saleman Problem (TSP). Available solvers include:
+Implementations of various solvers for the Traveling Saleman Problem (TSP). Available solvers include:
 
-1. Branch-and-bound
+1. Branch-and-bound (Exact)
 2. MST approximation
 3. Local search using simulated annealing
 4. Local search using 2-opt exchange neighborhood
