@@ -25,6 +25,12 @@ setuptools.setup(
     ],
     packages=setuptools.find_packages(),
     python_requires=">=3.8",
+    install_requires=[
+        'numpy',
+        'numba',
+        'pybind11',
+        'scipy',
+    ],
     cmdclass={"build_ext": build_ext},
     ext_modules=ext_modules
 )
