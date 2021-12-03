@@ -158,6 +158,7 @@ def main():
     parser.add_argument('-rtd', action="store_true", dest="rtd", help="Plot runtime distribution")
     parser.add_argument('-sqd', action="store_true", dest="sqd", help="Plot SQD")
     parser.add_argument('-boxplot', action="store_true", dest="boxplot", help="Make box plots of running times")
+    parser.add_argument('-title', action="store", dest="title", help="Title of plot")
     args = parser.parse_args()
 
     traces = []
@@ -191,11 +192,11 @@ def main():
             print("Must provide optimum value")
             exit(0)
     if args.rtd:
-        plot_rt_distribution(traces, opt, show=args.show, fname_prefix=args.fname_prefix)
+        plot_rt_distribution(traces, opt, show=args.show, fname_prefix=args.fname_prefix, title=args.title)
     if args.qrtd and args.qualities:
-        plot_qrtd(traces, opt, args.qualities, show=args.show, fname_prefix=args.fname_prefix)
+        plot_qrtd(traces, opt, args.qualities, show=args.show, fname_prefix=args.fname_prefix, title=args.title)
     if args.sqd and args.times:
-        plot_sqd(traces, opt, args.times, show=args.show, fname_prefix=args.fname_prefix)
+        plot_sqd(traces, opt, args.times, show=args.show, fname_prefix=args.fname_prefix, title=args.title)
 
 if __name__ == '__main__':
     main()
