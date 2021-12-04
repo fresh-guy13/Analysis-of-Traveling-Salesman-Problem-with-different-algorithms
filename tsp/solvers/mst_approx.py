@@ -16,12 +16,12 @@ class MSTApprox:
         random.seed(self.seed)
 
     def prim_find_mst(self):
-        N = len(self.dist_mat)
+        N = len(self.dist_mat) # number of vertices
         cost = 0.0
         tree = set()
         start = random.randint(0, N-1)
         #print(start)
-        queue = [(0, start, -1)]
+        queue = [(0, start, -1)] # priority queue for Prim's algorithm
         mst = {}
 
         while queue:
@@ -45,13 +45,17 @@ class MSTApprox:
 
     def solve(self):
         self.start_time = time.time()
+        # First find an MST
         self.prim_find_mst()
         N = len(self.dist_mat)
         root = random.randint(0, N-1)
+
+        # Add first node to path
         path = [root]
         seen = set()
         seen.add(root)
         pathcost = 0.0
+        # Make a stack for traversing the MST
         stk = [root]
         while(stk):
             direct_edge = False
@@ -61,9 +65,11 @@ class MSTApprox:
                     pathcost += self.dist_mat[neigh, path[-1]]
                     path.append(neigh)
                     stk.append(neigh)
+                    # We followed an edge in the MST
                     direct_edge = True
                     break
             if not direct_edge:
+                # We have to skip vertices because we've seen all the neighbors
                 stk.pop()
         pathcost += self.dist_mat[root, path[-1]]
         self.trace.append([time.time() - self.start_time, pathcost])
@@ -77,19 +83,6 @@ class MSTApprox:
         
         return self.best_dist, self.best_solution, self.trace
 
-
-        # odd_degree_vertices = sorted([vtx for vtx, neighbors in self.mst.items() if len(neighbors) % 2 != 0])
-        # sub_dist_mat = self.dist_mat[np.ix_(odd_degree_vertices, odd_degree_vertices)]
-        # sub_dist_mat = np.array(sub_dist_mat, dtype=np.float64)
-        # sub_dist_mat[sub_dist_mat==0.] = np.inf
-        # recip_weights = np.reciprocal(sub_dist_mat)
-        
-        # print(self.mst)
-        # print (self.mst_cost)
-        # G = networkx.convert_matrix.from_numpy_array(self.dist_mat)
-        # T = networkx.minimum_spanning_tree(G, weight='weight', algorithm='kruskal', ignore_nan=False)
-        # print(T.size(weight='weight'))
-        # print(sorted(T.edges(data=True)))
 
 if __name__ == '__main__':
     exit()
